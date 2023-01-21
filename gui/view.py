@@ -17,6 +17,15 @@ class Presenter(Protocol):
     def handle_clear(self, event=None) -> None:
         ...
 
+    def init_workbook_list(self) -> None:
+        ...
+
+    def update_workbook_list(self) -> None:
+        ...
+
+    def handle_workbook_selected(self, *args) -> None:
+        ...
+
 
 class MTFCalculator(tkdnd2.Tk):
     def __init__(self) -> None:
@@ -49,9 +58,38 @@ class MTFCalculator(tkdnd2.Tk):
         self.button_clear_all.pack(side=tk.LEFT)
         self.image_list_buttons.pack()
 
+        self.workbook_frame = tk.Frame(self)
+        self.workbook_option_label = tk.Label(
+            self.workbook_frame, text="Selected Excel workbook:"
+        )
+        presenter.init_workbook_list()
+        self.workbook_selection = tk.StringVar(self.workbook_frame)
+        self.workbook_selection.set(self.workbook_selected)
+        # self.workbook_options = presenter.get_workbook_options()
+        self.workbook_option_menu = tk.OptionMenu(
+            self.workbook_frame,
+            self.workbook_selection,
+            self.workbook_selected,
+            *self.workbook_options
+        )
+        self.workbook_selection.trace("w", presenter.handle_workbook_selected)
+        self.workbook_option_label.pack(side=tk.TOP)
+        self.workbook_option_menu.pack(side=tk.BOTTOM)
+        self.workbook_frame.pack()
+
     @property
     def selected_image(self) -> str:
-        return self.image_list.get(self.image_list.curselection())
+        try:
+            return self.image_list.get(self.image_list.curselection())
+        except tk.TclError:
+            return ""
+
+    @property
+    def selected_workbook(self) -> str:
+        return self.workbook_selection.get()
+
+    def set_workbook_selection(self, value: str) -> None:
+        self.workbook_selection.set(value)
 
     def on_select_task(self, event=None) -> None:
         self.button_delete_selected.config(state=tk.NORMAL)
@@ -65,3 +103,15 @@ class MTFCalculator(tkdnd2.Tk):
         for image in image_list:
             self.image_list.insert(tk.END, image)
         self.image_list.yview(tk.END)
+
+    def init_workbook_list(self, active: str, options: list[str]) -> None:
+        self.workbook_selected = active
+        self.workbook_options = options
+
+    def update_workbook_list(self, options: list[str]) -> None:
+        self.workbook_option_menu["menu"].delete(0, "end")
+        for book in options:
+            self.workbook_option_menu["menu"].add_command(
+                label=book,
+                command=lambda value=book: self.workbook_selection.set(value),
+            )

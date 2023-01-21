@@ -1,4 +1,5 @@
 import sqlite3
+import xlwings as xw
 from dataclasses import dataclass
 from pathlib import Path
 from .sql_queries import CREATE_TABLE, INSERT_ROWS, DELETE_ALL
@@ -30,11 +31,55 @@ class MTFEdge:
         )
 
 
+def get_active_book() -> str:
+    try:
+        return xw.books.active.name
+    except xw.XlwingsError:
+        return "-"
+
+
+def get_book_names(active: str) -> list[str]:
+    try:
+        book_names = ["-"]
+        [book_names.append(book.name) for book in xw.books if book.name != active]
+        return book_names
+    except xw.XlwingsError:
+        return []
+
+
+class ExcelHandler:
+    def __init__(self) -> None:
+        self.apps = xw.apps
+
+
 class Model:
     def __init__(self) -> None:
         self.connection = sqlite3.connect(":memory:")
         self.cursor = self.connection.cursor()
         self.cursor.execute(CREATE_TABLE)
+        self.selected_book = self.active_book
+        # self.active_book = get_active_book()
+        # self.book_names = get_book_names(self.active_book)
+
+    @property
+    def active_book(self):
+        try:
+            return xw.books.active.name
+        except xw.XlwingsError:
+            return "-"
+
+    @property
+    def book_names(self):
+        try:
+            book_names = ["-"]
+            [
+                book_names.append(book.name)
+                for book in xw.books
+                if book.name != self.selected_book
+            ]
+            return book_names
+        except xw.XlwingsError:
+            return []
 
     def add_edge_files(self, file_list: list[str]) -> None:
         new_data_rows = [MTFEdge(fpath=fpath).astuple() for fpath in file_list]
