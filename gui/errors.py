@@ -1,0 +1,2 @@
+class ExcelNotFoundError(Exception):
+    pass

@@ -2,9 +2,9 @@ import sqlite3
 from typing import Protocol
 from dataclasses import dataclass
 from pathlib import Path
-import xlwings as xw
 import numpy as np
 from .sql_queries import CREATE_TABLE, INSERT_ROWS, DELETE_ALL, UPDATE_MTF_VALUES
+from .errors import ExcelNotFoundError
 
 
 @dataclass
@@ -42,6 +42,14 @@ class MTFCalculator(Protocol):
         ...
 
 
+class ExcelHandler(Protocol):
+    selected_book: str
+
+    @property
+    def book_names(self) -> list[str]:
+        ...
+
+
 def mtfcol2str(data_column: np.array) -> str:
     """Convert numpy array to comma separated string."""
     return ",".join(data_column.astype(str))
@@ -52,32 +60,14 @@ def str2mtfcol(data_str: str) -> np.array:
 
 
 class Model:
-    def __init__(self, mtf_calculator: MTFCalculator = None) -> None:
+    def __init__(
+        self, mtf_calculator: MTFCalculator = None, excel_handler: ExcelHandler = None
+    ) -> None:
         self.connection = sqlite3.connect(":memory:")
         self.cursor = self.connection.cursor()
         self.cursor.execute(CREATE_TABLE)
-        self.selected_book = self.active_book
+        self.excel = excel_handler
         self.mtf_calc = mtf_calculator
-
-    @property
-    def active_book(self):
-        try:
-            return xw.books.active.name
-        except xw.XlwingsError:
-            return "-"
-
-    @property
-    def book_names(self):
-        try:
-            book_names = ["-"]
-            [
-                book_names.append(book.name)
-                for book in xw.books
-                if book.name != self.selected_book
-            ]
-            return book_names
-        except xw.XlwingsError:
-            return []
 
     def add_edge_files(self, file_list: list[str]) -> None:
         new_data_rows = [MTFEdge(fpath=fpath).astuple() for fpath in file_list]

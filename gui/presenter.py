@@ -2,6 +2,7 @@ from __future__ import annotations
 import re
 from typing import Protocol
 from .model import Model
+from .errors import ExcelNotFoundError
 
 
 class View(Protocol):
@@ -62,16 +63,19 @@ class Presenter:
         self.view.update_image_list(image_names)
 
     def init_workbook_list(self) -> None:
-        selected = self.model.selected_book
-        book_names = self.model.book_names
+        selected = self.model.excel.selected_book
+        try:
+            book_names = self.model.excel.book_names
+        except ExcelNotFoundError:
+            book_names = []
         self.view.init_workbook_list(selected, book_names)
         self.view.after(2000, self.update_workbook_list)
 
     def update_workbook_list(self) -> None:
-        book_names = self.model.book_names
-        if book_names:
+        try:
+            book_names = self.model.excel.book_names
             self.view.update_workbook_list(book_names)
-        else:
+        except ExcelNotFoundError:
             self.view.update_workbook_list([])
             self.view.set_workbook_selection("-")
         self.view.after(2000, self.update_workbook_list)
@@ -90,4 +94,4 @@ class Presenter:
         self.update_image_list()
 
     def handle_workbook_selected(self, *args) -> None:
-        self.model.selected_book = self.view.selected_workbook
+        self.model.excel.selected_book = self.view.selected_workbook
