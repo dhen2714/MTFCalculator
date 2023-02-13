@@ -4,13 +4,13 @@ from dataclasses import dataclass
 from pathlib import Path
 import numpy as np
 from .sql_queries import CREATE_TABLE, INSERT_ROWS, DELETE_ALL, UPDATE_MTF_VALUES
-from .errors import ExcelNotFoundError
 
 
 @dataclass
 class MTFEdge:
 
     fpath: str
+    _name: str = None
     frequency: str = None
     mode: str = None
     left: str = None
@@ -47,6 +47,9 @@ class ExcelHandler(Protocol):
 
     @property
     def book_names(self) -> list[str]:
+        ...
+
+    def write_data(self, file_name: str, mode: str, mtf_data: np.ndarray) -> None:
         ...
 
 
@@ -118,3 +121,50 @@ class Model:
             UPDATE_MTF_VALUES, (mode, frequency, left, right, top, bottom, fpath)
         )
         self.connection.commit()
+
+    def get_unprocessed_paths(self) -> list[str]:
+        unprocessed_rows = self.cursor.execute(
+            "select fpath from edges where processed = 0"
+        )
+        unprocessed_paths = []
+        for row in unprocessed_rows:
+            unprocessed_paths.append(row[0])
+        return unprocessed_paths
+
+    def calculate_all(self) -> None:
+        """
+        Calculate MTF for all unprocessed image files
+        """
+        unprocessed = self.get_unprocessed_paths()
+        for dcm_path in unprocessed:
+            frequency, left, right, top, bottom, metadata = self.calculate_mtf(dcm_path)
+            mode = metadata["mode"]
+            self.update_mtf_values(dcm_path, mode, frequency, left, right, top, bottom)
+        pass
+
+    def get_all_processed(self) -> list[tuple]:
+        """
+        Extract all processed entries from the database
+        """
+        processed_rows = self.cursor.execute(
+            "select * from edges where processed = 1"
+        ).fetchall()
+        return processed_rows
+
+    def write_all_processed(self) -> list[dict]:
+        """
+        Go through database, getting all processed edges and writing them all to
+        excel.
+        """
+        processed_rows = self.get_all_processed()
+
+        for row in processed_rows:
+            row.frequency = str2mtfcol(row.frequency)
+            row.left = str2mtfcol(row.left)
+            row.right = str2mtfcol(row.right)
+            row.top = str2mtfcol(row.top)
+            row.bottom = str2mtfcol(row.bottom)
+            mtf_data = np.array(
+                [row.frequency, row.left, row.right, row.top, row.bottom]
+            ).T
+            self.excel.write_data(row.name, row.mode, mtf_data)
