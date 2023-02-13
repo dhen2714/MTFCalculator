@@ -4,6 +4,8 @@ from pathlib import Path
 import numpy as np
 import pydicom
 from pydicom.dataset import FileDataset
+from .utils import read_json
+from .constants import DEFAULT_TEMPLATE_PATH
 from mtf import get_labelled_rois, calculate_mtf, preprocess_dcm
 
 
@@ -11,12 +13,6 @@ class MTFCalculator(ABC):
     @abstractmethod
     def calculate_mtf(self, dicom_path: str | Path) -> tuple[np.ndarray, dict]:
         ...
-
-
-class MTSampleSpacing(Enum):
-    contact = 0.0635
-    mag = 0.0349
-    tomo_recon_top = 0.108
 
 
 class EdgeDirection(Enum):
@@ -49,8 +45,12 @@ def get_hologic_mode(dcm: FileDataset) -> str:
 class MammoTemplateCalc(MTFCalculator):
     """Calculator compatible with the mammo template"""
 
-    def __init__(self) -> None:
+    def __init__(self, params_path=None) -> None:
         self.sample_number = 104
+        if params_path:
+            self.params_dict = read_json(params_path)
+        else:
+            self.params_dict = read_json(DEFAULT_TEMPLATE_PATH)
 
     def calculate_mtf(self, dicom_path) -> tuple[np.ndarray, dict]:
         """
@@ -63,7 +63,7 @@ class MammoTemplateCalc(MTFCalculator):
         manufacturer_name = dcm[0x0008, 0x0070].value.lower()
         if "hologic" in manufacturer_name:
             mode = get_hologic_mode(dcm)
-            sample_spacing = MTSampleSpacing[mode].value
+            sample_spacing = self.params_dict["hologic_spacing"][mode]
         elif "ge" in manufacturer_name:
             mode = "contact"
             sample_spacing = 0.1
