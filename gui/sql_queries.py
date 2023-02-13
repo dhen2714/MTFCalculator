@@ -26,3 +26,5 @@ UPDATE_MTF_VALUES = """ UPDATE edges SET
     bottom = ?,
     processed = 1
     WHERE fpath = ?;"""
+
+SELECT_PROCESSED = """SELECT * FROM edges WHERE processed = 1"""
