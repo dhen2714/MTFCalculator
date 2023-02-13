@@ -1,0 +1,15 @@
+{
+    "sheet_name": "Resolution",
+    "modes": {
+        "contact": "AF8",
+        "mag": "AJ8",
+        "tomo_recon_top": "AV8"
+    },
+    "hologic_spacing": {
+        "contact": 0.0635,
+        "mag": 0.0349,
+        "tomo_recon_top": 0.108
+    },
+    "edge_locations": "right, top",
+    "substitute_edge_locations": true
+}
