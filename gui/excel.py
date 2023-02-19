@@ -3,7 +3,12 @@ from pathlib import Path
 import re
 import xlwings as xw
 import numpy as np
-from .errors import ExcelNotFoundError, ValueOverwriteError
+from .errors import (
+    ExcelNotFoundError,
+    ValueOverwriteError,
+    TemplateWriteError,
+    ExcelWriteError,
+)
 from .calculator import ColumnIndex
 from .constants import DEFAULT_TEMPLATE_PATH
 from .utils import read_json
@@ -66,8 +71,8 @@ class XwingsHandler(ExcelHandler):
         """Substitution not implemented."""
         book_name = self.selected_book
         sheet_name = self.params_dict["sheet_name"]
-        xwsheet = xw.books[book_name][sheet_name]
-        cell_key = self.params_dict["mode"][mode]
+        xwsheet = xw.books[book_name].sheets[sheet_name]
+        cell_key = self.params_dict["modes"][mode]
         edge_locations_write = self.params_dict["edge_locations"].split(", ")
         edge_indices = [
             ColumnIndex[edge_loc].value for edge_loc in edge_locations_write
@@ -100,8 +105,15 @@ class XwingsHandler(ExcelHandler):
         #     write_values(xwsheet, tomo_recon_bot, cell_key)
 
     def write_data(self, file_name: str, mode: str, mtf_data: np.ndarray) -> None:
-        if self.write_mode == "template":
-            self.write_template(mode, mtf_data)
+        try:
+            if self.write_mode == "template":
+                self.write_template(mode, mtf_data)
+        except xw.XlwingsError as e:
+            print(e)
+            raise ExcelWriteError
+        except TemplateWriteError:
+            print(e)
+            raise ExcelWriteError
 
 
 def write_values(sheet: xw.Sheet, array: np.ndarray, cell_key: str) -> None:
