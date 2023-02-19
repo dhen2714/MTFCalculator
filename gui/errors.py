@@ -4,3 +4,11 @@ class ExcelNotFoundError(Exception):
 
 class ValueOverwriteError(Exception):
     pass
+
+
+class ExcelWriteError(Exception):
+    pass
+
+
+class TemplateWriteError(Exception):
+    pass
