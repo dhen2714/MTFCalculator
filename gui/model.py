@@ -1,18 +1,19 @@
 import sqlite3
 from typing import Protocol
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 import numpy as np
 from .sql_queries import CREATE_TABLE, INSERT_ROWS, DELETE_ALL, UPDATE_MTF_VALUES
+from .errors import ExcelWriteError
 
 
 @dataclass
 class MTFEdge:
 
     fpath: str
-    _name: str = None
-    frequency: str = None
+    _name: str = field(default=None,  compare=False)
     mode: str = None
+    frequency: str = None
     left: str = None
     right: str = None
     top: str = None
@@ -59,7 +60,7 @@ def mtfcol2str(data_column: np.array) -> str:
 
 
 def str2mtfcol(data_str: str) -> np.array:
-    return np.array(data_str.split(","), dype=float)
+    return np.array(data_str.split(","), dtype=float)
 
 
 class Model:
@@ -142,13 +143,14 @@ class Model:
             self.update_mtf_values(dcm_path, mode, frequency, left, right, top, bottom)
         pass
 
-    def get_all_processed(self) -> list[tuple]:
+    def get_all_processed(self) -> list[MTFEdge]:
         """
         Extract all processed entries from the database
         """
         processed_rows = self.cursor.execute(
             "select * from edges where processed = 1"
         ).fetchall()
+        processed_rows = [MTFEdge(*values) for values in processed_rows]
         return processed_rows
 
     def write_all_processed(self) -> list[dict]:
@@ -167,4 +169,7 @@ class Model:
             mtf_data = np.array(
                 [row.frequency, row.left, row.right, row.top, row.bottom]
             ).T
-            self.excel.write_data(row.name, row.mode, mtf_data)
+            try:
+                self.excel.write_data(row.name, row.mode, mtf_data)
+            except ExcelWriteError as e:
+                print(e)
