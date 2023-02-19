@@ -95,3 +95,13 @@ class Presenter:
 
     def handle_workbook_selected(self, *args) -> None:
         self.model.excel.selected_book = self.view.selected_workbook
+
+    def handle_calculate(self) -> None:
+        self.model.calculate_all()
+
+    def handle_write(self) -> None:
+        self.model.write_all_processed()
+
+    def handle_calculate_write(self) -> None:
+        self.handle_calculate()
+        self.handle_write()
