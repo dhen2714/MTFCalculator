@@ -58,6 +58,7 @@ class MammoTemplateCalc(MTFCalculator):
         mode
 
         """
+        metadata = {}
         dcm = pydicom.dcmread(dicom_path)
         image_array = preprocess_dcm(dcm)
         manufacturer_name = dcm[0x0008, 0x0070].value.lower()
@@ -67,7 +68,7 @@ class MammoTemplateCalc(MTFCalculator):
         elif "ge" in manufacturer_name:
             mode = "contact"
             sample_spacing = 0.1
-
+        metadata["mode"] = mode
         rois, rois_edge = get_labelled_rois(image_array)
         results_array = np.empty((self.sample_number, 5))
         results_array[:] = np.nan
@@ -85,4 +86,4 @@ class MammoTemplateCalc(MTFCalculator):
             )
             results_array[:, ColumnIndex[edge_position].value] = mtf
             results_array[:, 0] = f
-        return results_array
+        return results_array, metadata
