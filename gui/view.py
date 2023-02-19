@@ -26,6 +26,15 @@ class Presenter(Protocol):
     def handle_workbook_selected(self, *args) -> None:
         ...
 
+    def handle_calculate(self) -> None:
+        ...
+
+    def handle_write(self) -> None:
+        ...
+
+    def handle_calculate_write(self) -> None:
+        ...
+
 
 class MTFCalculator(tkdnd2.Tk):
     def __init__(self) -> None:
@@ -35,7 +44,7 @@ class MTFCalculator(tkdnd2.Tk):
 
     def init_ui(self, presenter: Presenter) -> None:
         self.frame = tk.Frame(self)
-        self.frame.pack()
+        self.frame.grid(row=0, column=1)
         self.frame.drop_target_register(DND_FILES)
         self.frame.dnd_bind("<<Drop>>", presenter.handle_files_dropped)
 
@@ -45,7 +54,7 @@ class MTFCalculator(tkdnd2.Tk):
         self.image_list.bind("<FocusOut>", self.on_focus_out)
         self.image_list.pack()
 
-        self.image_list_buttons = tk.Frame(self)
+        self.image_list_buttons = tk.Frame(self.frame)
         self.button_delete_selected = tk.Button(
             self.image_list_buttons,
             text="Delete selected",
@@ -58,7 +67,7 @@ class MTFCalculator(tkdnd2.Tk):
         self.button_clear_all.pack(side=tk.LEFT)
         self.image_list_buttons.pack()
 
-        self.workbook_frame = tk.Frame(self)
+        self.workbook_frame = tk.Frame(self.frame)
         self.workbook_option_label = tk.Label(
             self.workbook_frame, text="Selected Excel workbook:"
         )
@@ -76,6 +85,29 @@ class MTFCalculator(tkdnd2.Tk):
         self.workbook_option_label.pack(side=tk.TOP)
         self.workbook_option_menu.pack(side=tk.BOTTOM)
         self.workbook_frame.pack()
+
+        self.calc_button_frame = tk.Frame(self)
+        self.calc_button_row1 = tk.Frame(self.calc_button_frame)
+        self.calculate_button = tk.Button(
+            self.calc_button_row1,
+            text="Calculate MTF",
+            command=presenter.handle_calculate,
+        )
+        self.calculate_button.pack(side=tk.LEFT)
+        self.write_button = tk.Button(
+            self.calc_button_row1,
+            text="Write results",
+            command=presenter.handle_write,
+        )
+        self.write_button.pack(side=tk.RIGHT)
+        self.calc_button_row1.pack()
+        self.calculate_write_button = tk.Button(
+            self.calc_button_frame,
+            text="Calculate and write",
+            command=presenter.handle_calculate_write,
+        )
+        self.calculate_write_button.pack()
+        self.calc_button_frame.grid(row=0, column=0, padx=10)
 
     @property
     def selected_image(self) -> str:
