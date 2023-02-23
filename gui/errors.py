@@ -12,3 +12,7 @@ class ExcelWriteError(Exception):
 
 class TemplateWriteError(Exception):
     pass
+
+
+class ActiveCellError(Exception):
+    pass
