@@ -2,7 +2,7 @@ from __future__ import annotations
 import re
 from typing import Protocol
 from .model import Model
-from .errors import ExcelNotFoundError
+from .errors import ExcelNotFoundError, ActiveCellError
 
 
 class View(Protocol):
@@ -26,7 +26,20 @@ class View(Protocol):
     def selected_workbook(self) -> str:
         ...
 
+    @property
+    def selected_write_mode(self) -> str:
+        ...
+
+    def on_active_cell_select(self) -> None:
+        ...
+
+    def on_template_select(self) -> None:
+        ...
+
     def set_workbook_selection(self, value: str) -> None:
+        ...
+
+    def set_active_cell_text(self, value: str) -> None:
         ...
 
     def mainloop(self) -> None:
@@ -105,3 +118,29 @@ class Presenter:
     def handle_calculate_write(self) -> None:
         self.handle_calculate()
         self.handle_write()
+
+    def handle_write_mode(self) -> None:
+        write_mode = self.view.selected_write_mode
+        if write_mode == "template":
+            self.handle_template_select()
+        elif write_mode == "active_cell":
+            self.handle_active_select()
+
+    def handle_template_select(self) -> None:
+        self.view.on_template_select()
+        self.model.excel.write_mode = "template"
+
+    def handle_active_select(self) -> None:
+        self.view.on_active_cell_select()
+        self.model.excel.write_mode = "active_cell"
+        self.handle_active_cell_refresh()
+
+    def handle_active_cell_refresh(self) -> None:
+        try:
+            self.model.excel.set_active_cell()
+            active_cell = self.model.excel.active_cell
+        except ActiveCellError as e:
+            active_cell = ""
+            print(e)
+
+        self.view.set_active_cell_text(active_cell)
