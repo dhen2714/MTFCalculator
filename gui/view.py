@@ -35,16 +35,28 @@ class Presenter(Protocol):
     def handle_calculate_write(self) -> None:
         ...
 
+    def handle_write_mode(self) -> None:
+        ...
+
+    def handle_template_select(self) -> None:
+        ...
+
+    def handle_active_select(self) -> None:
+        ...
+
+    def handle_active_cell_refresh(self) -> None:
+        ...
+
 
 class MTFCalculator(tkdnd2.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title(TITLE)
-        self.geometry("500x300")
+        self.geometry("400x300")
 
     def init_ui(self, presenter: Presenter) -> None:
         self.frame = tk.Frame(self)
-        self.frame.grid(row=0, column=1)
+        self.frame.grid(row=0, column=1, rowspan=2)
         self.frame.drop_target_register(DND_FILES)
         self.frame.dnd_bind("<<Drop>>", presenter.handle_files_dropped)
 
@@ -86,6 +98,40 @@ class MTFCalculator(tkdnd2.Tk):
         self.workbook_option_menu.pack(side=tk.BOTTOM)
         self.workbook_frame.pack()
 
+        self.write_mode_frame = tk.Frame(self)
+        self.write_mode = tk.StringVar(self, value="template")
+        self.write_mode_label = tk.Label(self.write_mode_frame, text="Write data to:")
+        self.template_write = tk.Radiobutton(
+            self.write_mode_frame,
+            text="Template",
+            variable=self.write_mode,
+            value="template",
+            command=presenter.handle_write_mode,
+        )
+        self.active_cell_write = tk.Radiobutton(
+            self.write_mode_frame,
+            text="Active cell",
+            variable=self.write_mode,
+            value="active_cell",
+            command=presenter.handle_write_mode,
+        )
+        self.active_cell_refresh = tk.Button(
+            self.write_mode_frame,
+            text="Active cell:",
+            state=tk.DISABLED,
+            command=presenter.handle_active_cell_refresh,
+        )
+        self.active_cell = tk.StringVar(self)
+        self.active_cell_value_text = tk.Label(
+            self.write_mode_frame, textvariable=self.active_cell, state=tk.DISABLED
+        )
+        self.write_mode_label.pack()
+        self.template_write.pack()
+        self.active_cell_write.pack()
+        self.active_cell_refresh.pack(side=tk.LEFT)
+        self.active_cell_value_text.pack(side=tk.RIGHT)
+        self.write_mode_frame.grid(row=0, column=0)
+
         self.calc_button_frame = tk.Frame(self)
         self.calc_button_row1 = tk.Frame(self.calc_button_frame)
         self.calculate_button = tk.Button(
@@ -107,7 +153,7 @@ class MTFCalculator(tkdnd2.Tk):
             command=presenter.handle_calculate_write,
         )
         self.calculate_write_button.pack()
-        self.calc_button_frame.grid(row=0, column=0, padx=10)
+        self.calc_button_frame.grid(row=1, column=0, padx=10)
 
     @property
     def selected_image(self) -> str:
@@ -120,8 +166,15 @@ class MTFCalculator(tkdnd2.Tk):
     def selected_workbook(self) -> str:
         return self.workbook_selection.get()
 
+    @property
+    def selected_write_mode(self) -> str:
+        return self.write_mode.get()
+
     def set_workbook_selection(self, value: str) -> None:
         self.workbook_selection.set(value)
+
+    def set_active_cell_text(self, value: str) -> None:
+        self.active_cell.set(value)
 
     def on_select_task(self, event=None) -> None:
         self.button_delete_selected.config(state=tk.NORMAL)
@@ -129,6 +182,14 @@ class MTFCalculator(tkdnd2.Tk):
     def on_focus_out(self, event=None) -> None:
         # self.image_list.selection_clear(0, tk.END)
         self.button_delete_selected.config(state=tk.DISABLED)
+
+    def on_active_cell_select(self) -> None:
+        self.active_cell_value_text.config(state=tk.NORMAL)
+        self.active_cell_refresh.config(state=tk.NORMAL)
+
+    def on_template_select(self) -> None:
+        self.active_cell_value_text.config(state=tk.DISABLED)
+        self.active_cell_refresh.config(state=tk.DISABLED)
 
     def update_image_list(self, image_list: list[str]) -> None:
         self.image_list.delete(0, tk.END)
