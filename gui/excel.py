@@ -69,9 +69,7 @@ class XwingsHandler(ExcelHandler):
                 if book.name != self.selected_book
             ]
             return book_names
-        except xw.XlwingsError:
-            raise ExcelNotFoundError
-        except com_error:
+        except (xw.XlwingsError, com_error, OSError):
             raise ExcelNotFoundError
 
     def set_active_cell(self) -> None:
@@ -90,7 +88,7 @@ class XwingsHandler(ExcelHandler):
         self.active_cell = xwbook.app.selection.address.replace("$", "")
         self.active_cell_gen = self.write_cell_generator(self.active_cell)
 
-    def write_cell_generator(self, active_cell):
+    def write_cell_generator(self, active_cell: str) -> tuple[int, int]:
         row_write, col_write = excelkey2ind(active_cell)
         increment = 5
         while True:
@@ -114,7 +112,7 @@ class XwingsHandler(ExcelHandler):
                 "Values detected in cells, cannot write to active cell."
             )
 
-    def write_template(self, mode: str, mtf_data: np.ndarray):
+    def write_template(self, mode: str, mtf_data: np.ndarray) -> None:
         """Substitution not implemented."""
         book_name = self.selected_book
         sheet_name = self.params_dict["sheet_name"]
