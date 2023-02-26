@@ -86,7 +86,6 @@ class MTFCalculator(tkdnd2.Tk):
         presenter.init_workbook_list()
         self.workbook_selection = tk.StringVar(self.workbook_frame)
         self.workbook_selection.set(self.workbook_selected)
-        # self.workbook_options = presenter.get_workbook_options()
         self.workbook_option_menu = tk.OptionMenu(
             self.workbook_frame,
             self.workbook_selection,
@@ -97,7 +96,7 @@ class MTFCalculator(tkdnd2.Tk):
         self.workbook_option_label.pack(side=tk.TOP)
         self.workbook_option_menu.pack(side=tk.BOTTOM)
         self.workbook_frame.pack()
-
+        # Frame that contains the 'template' and 'active' radiobuttons for Excel write.
         self.write_mode_frame = tk.Frame(self)
         self.write_mode = tk.StringVar(self, value="template")
         self.write_mode_label = tk.Label(self.write_mode_frame, text="Write data to:")
@@ -131,7 +130,7 @@ class MTFCalculator(tkdnd2.Tk):
         self.active_cell_refresh.pack(side=tk.LEFT)
         self.active_cell_value_text.pack(side=tk.RIGHT)
         self.write_mode_frame.grid(row=0, column=0)
-
+        # Frame for calculate and write buttons
         self.calc_button_frame = tk.Frame(self)
         self.calc_button_row1 = tk.Frame(self.calc_button_frame)
         self.calculate_button = tk.Button(
@@ -180,7 +179,6 @@ class MTFCalculator(tkdnd2.Tk):
         self.button_delete_selected.config(state=tk.NORMAL)
 
     def on_focus_out(self, event=None) -> None:
-        # self.image_list.selection_clear(0, tk.END)
         self.button_delete_selected.config(state=tk.DISABLED)
 
     def on_active_cell_select(self) -> None:
