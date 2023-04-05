@@ -64,10 +64,12 @@ class MammoTemplateCalc(MTFCalculator):
         manufacturer_name = dcm[0x0008, 0x0070].value.lower()
         if "hologic" in manufacturer_name:
             mode = get_hologic_mode(dcm)
-            sample_spacing = self.params_dict["hologic_spacing"][mode]
+            sample_spacing = self.params_dict["hologic"]["spacing"][mode]
+            metadata["manufacturer"] = "hologic"
         elif "ge" in manufacturer_name:
             mode = "contact"
-            sample_spacing = 0.1
+            sample_spacing = self.params_dict["ge"]["spacing"][mode]
+            metadata["manufacturer"] = "ge"
         metadata["mode"] = mode
         rois, rois_edge = get_labelled_rois(image_array)
         results_array = np.empty((self.sample_number, 5))

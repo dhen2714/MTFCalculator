@@ -11,7 +11,8 @@ from .errors import ExcelWriteError
 class MTFEdge:
 
     fpath: str
-    _name: str = field(default=None,  compare=False)
+    _name: str = field(default=None, compare=False)
+    manufacturer: str = None
     mode: str = None
     frequency: str = None
     left: str = None
@@ -28,6 +29,7 @@ class MTFEdge:
         return (
             self.fpath,
             self.name,
+            self.manufacturer,
             self.mode,
             self.frequency,
             self.left,
@@ -50,7 +52,9 @@ class ExcelHandler(Protocol):
     def book_names(self) -> list[str]:
         ...
 
-    def write_data(self, file_name: str, mode: str, mtf_data: np.ndarray) -> None:
+    def write_data(
+        self, file_name: str, manufacturer: str, mode: str, mtf_data: np.ndarray
+    ) -> None:
         ...
 
 
@@ -111,6 +115,7 @@ class Model:
     def update_mtf_values(
         self,
         fpath: str,
+        manufacturer: str,
         mode: str,
         frequency: str,
         left: str,
@@ -119,7 +124,8 @@ class Model:
         bottom: str,
     ) -> None:
         self.cursor.execute(
-            UPDATE_MTF_VALUES, (mode, frequency, left, right, top, bottom, fpath)
+            UPDATE_MTF_VALUES,
+            (manufacturer, mode, frequency, left, right, top, bottom, fpath),
         )
         self.connection.commit()
 
@@ -140,7 +146,10 @@ class Model:
         for dcm_path in unprocessed:
             frequency, left, right, top, bottom, metadata = self.calculate_mtf(dcm_path)
             mode = metadata["mode"]
-            self.update_mtf_values(dcm_path, mode, frequency, left, right, top, bottom)
+            manufacturer = metadata["manufacturer"]
+            self.update_mtf_values(
+                dcm_path, manufacturer, mode, frequency, left, right, top, bottom
+            )
         pass
 
     def get_all_processed(self) -> list[MTFEdge]:
@@ -170,6 +179,6 @@ class Model:
                 [row.frequency, row.left, row.right, row.top, row.bottom]
             ).T
             try:
-                self.excel.write_data(row.name, row.mode, mtf_data)
+                self.excel.write_data(row.name, row.manufacturer, row.mode, mtf_data)
             except ExcelWriteError as e:
                 print(e)

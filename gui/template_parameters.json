@@ -5,10 +5,27 @@
         "mag": "AJ8",
         "tomo_recon_top": "AV8"
     },
+    "hologic": {
+        "spacing": {
+            "contact": 0.0635,
+            "mag": 0.0349,
+            "tomo_recon_top": 0.108
+        },
+        "edge_locations": "right, top"
+    },
+    "ge": {
+        "spacing": {
+            "contact": 0.0909
+        },
+        "edge_locations": "left, bottom"
+    },
     "hologic_spacing": {
         "contact": 0.0635,
         "mag": 0.0349,
         "tomo_recon_top": 0.108
+    },
+    "ge_spacing": {
+        "contact": 0.0909
     },
     "edge_locations": "right, top",
     "substitute_edge_locations": true

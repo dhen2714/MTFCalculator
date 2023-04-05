@@ -112,7 +112,9 @@ class XwingsHandler(ExcelHandler):
                 "Values detected in cells, cannot write to active cell."
             )
 
-    def write_template(self, mode: str, mtf_data: np.ndarray) -> None:
+    def write_template(
+        self, manufacturer: str, mode: str, mtf_data: np.ndarray
+    ) -> None:
         """Substitution not implemented."""
         book_name = self.selected_book
         sheet_name = self.params_dict["sheet_name"]
@@ -121,7 +123,9 @@ class XwingsHandler(ExcelHandler):
         except com_error:
             raise TemplateWriteError
         cell_key = self.params_dict["modes"][mode]
-        edge_locations_write = self.params_dict["edge_locations"].split(", ")
+        edge_locations_write = self.params_dict[manufacturer]["edge_locations"].split(
+            ", "
+        )
         edge_indices = [
             ColumnIndex[edge_loc].value for edge_loc in edge_locations_write
         ]
@@ -133,10 +137,12 @@ class XwingsHandler(ExcelHandler):
         formatted_data = np.concatenate(array_list, axis=1)
         write_values(xwsheet, formatted_data, cell_key)
 
-    def write_data(self, file_name: str, mode: str, mtf_data: np.ndarray) -> None:
+    def write_data(
+        self, file_name: str, manufacturer: str, mode: str, mtf_data: np.ndarray
+    ) -> None:
         try:
             if self.write_mode == "template":
-                self.write_template(mode, mtf_data)
+                self.write_template(manufacturer, mode, mtf_data)
             else:
                 self.write_active(file_name, mode, mtf_data)
         except xw.XlwingsError as e:
