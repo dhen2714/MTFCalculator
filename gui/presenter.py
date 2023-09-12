@@ -45,6 +45,9 @@ class View(Protocol):
     def mainloop(self) -> None:
         ...
 
+    def popup_version(self) -> None:
+        ...
+
 
 def split_event_string(event_string: str) -> list[str]:
     """
@@ -67,8 +70,10 @@ class Presenter:
         self.model = model
         self.view = view
 
-    def run(self) -> None:
+    def run(self, version_file=None) -> None:
         self.view.init_ui(self)
+        if version_file:
+            self.view.popup_version()
         self.view.mainloop()
 
     def update_image_list(self) -> None:
@@ -144,3 +149,6 @@ class Presenter:
             print(e)
 
         self.view.set_active_cell_text(active_cell)
+
+    def handle_version_check(self, version_file) -> None:
+        pass
