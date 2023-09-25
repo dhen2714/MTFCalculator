@@ -53,6 +53,7 @@ class cTkdnd(ctk.CTk, TkinterDnD.DnDWrapper):
         self.TkdndVersion = TkinterDnD._require(self)
 
 # ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("green")
 
 class MTFCalculator(cTkdnd):
     def __init__(self) -> None:
@@ -61,7 +62,7 @@ class MTFCalculator(cTkdnd):
         self.geometry("600x450")
 
     def init_ui(self, presenter: Presenter) -> None:
-        self.frame = ctk.CTkFrame(self)
+        self.frame = ctk.CTkFrame(self, width=300, height=450, fg_color="transparent")
         self.frame.grid(row=0, column=1, rowspan=2)
         self.frame.drop_target_register(DND_FILES)
         self.frame.dnd_bind("<<Drop>>", presenter.handle_files_dropped)
@@ -85,7 +86,7 @@ class MTFCalculator(cTkdnd):
         self.button_clear_all.pack(side=tk.LEFT)
         self.image_list_buttons.pack()
 
-        self.workbook_frame = ctk.CTkFrame(self.frame)
+        self.workbook_frame = ctk.CTkFrame(self.frame, width=300, height=450, fg_color="transparent")
         self.workbook_option_label = ctk.CTkLabel(
             self.workbook_frame, text="Selected Excel workbook:"
         )
@@ -103,7 +104,7 @@ class MTFCalculator(cTkdnd):
         self.workbook_option_menu.pack(side=tk.BOTTOM)
         self.workbook_frame.pack()
         # Frame that contains the 'template' and 'active' radiobuttons for Excel write.
-        self.write_mode_frame = ctk.CTkFrame(self)
+        self.write_mode_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.write_mode = ctk.StringVar(self, value="template")
         self.write_mode_label = ctk.CTkLabel(self.write_mode_frame, text="Write data to:")
         self.template_write = ctk.CTkRadioButton(
@@ -137,7 +138,7 @@ class MTFCalculator(cTkdnd):
         self.active_cell_value_text.pack(side=tk.RIGHT)
         self.write_mode_frame.grid(row=0, column=0)
         # Frame for calculate and write buttons
-        self.calc_button_frame = ctk.CTkFrame(self)
+        self.calc_button_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.calc_button_row1 = ctk.CTkFrame(self.calc_button_frame)
         self.calculate_button = ctk.CTkButton(
             self.calc_button_row1,
