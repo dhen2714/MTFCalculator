@@ -1,0 +1,37 @@
+[project]
+
+name = "drmam"
+version = "1.0.0"
+description = "Digital Radiography Modulation transfer function Analysis Module"
+requires-python = ">=3.10"
+authors = [{ name = "David Henry", email = "david.henry3@health.nsw.gov.au" }]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "numpy",
+    "numba",
+    "pydicom",
+    "xlwings",
+    "tkinterdnd2",
+    "customtkinter",
+    "opencv-python",
+    "scikit-learn",
+    "scipy",
+    "packaging",
+    "pylibjpeg",
+    "pylibjpeg-libjpeg",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mtf", "gui"]
+
+[project-urls]
+"Homepage" = "https://github.com/dhen2714/MTFCalculator"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
