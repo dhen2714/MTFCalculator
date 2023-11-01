@@ -9,7 +9,6 @@ from .errors import ExcelWriteError
 
 @dataclass
 class MTFEdge:
-
     fpath: str
     _name: str = field(default=None, compare=False)
     manufacturer: str = None

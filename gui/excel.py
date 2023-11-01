@@ -12,7 +12,6 @@ from .errors import (
     ActiveCellError,
 )
 from .calculator import ColumnIndex
-from .constants import DEFAULT_TEMPLATE_PATH
 from .utils import read_json
 
 
@@ -45,7 +44,8 @@ class ExcelHandler(ABC):
 
 
 class XwingsHandler(ExcelHandler):
-    def __init__(self, write_mode="template", params_path=None) -> None:
+    def __init__(self, params_path: Path, write_mode="template") -> None:
+        self.params_dict = read_json(params_path)
         self.write_mode = write_mode
         self.active_sheet = None
         self.active_cell = None
@@ -54,10 +54,6 @@ class XwingsHandler(ExcelHandler):
             self.selected_book = xw.books.active.name
         except xw.XlwingsError:
             self.selected_book = "-"
-        if params_path:
-            self.params_dict = read_json(params_path)
-        else:
-            self.params_dict = read_json(DEFAULT_TEMPLATE_PATH)
 
     @property
     def book_names(self) -> list[str]:

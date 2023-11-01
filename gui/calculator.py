@@ -5,7 +5,6 @@ import numpy as np
 import pydicom
 from pydicom.dataset import FileDataset
 from .utils import read_json
-from .constants import DEFAULT_TEMPLATE_PATH
 from mtf import get_labelled_rois, calculate_mtf, preprocess_dcm
 
 
@@ -45,12 +44,9 @@ def get_hologic_mode(dcm: FileDataset) -> str:
 class MammoTemplateCalc(MTFCalculator):
     """Calculator compatible with the mammo template"""
 
-    def __init__(self, params_path=None) -> None:
+    def __init__(self, params_path: Path) -> None:
         self.sample_number = 104
-        if params_path:
-            self.params_dict = read_json(params_path)
-        else:
-            self.params_dict = read_json(DEFAULT_TEMPLATE_PATH)
+        self.params_dict = read_json(params_path)
 
     def calculate_mtf(self, dicom_path) -> tuple[np.ndarray, dict]:
         """
