@@ -12,7 +12,6 @@ from .errors import (
     ActiveCellError,
 )
 from .calculator import ColumnIndex
-from .constants import DEFAULT_TEMPLATE_PATH
 from .utils import read_json
 
 

@@ -5,7 +5,6 @@ import numpy as np
 import pydicom
 from pydicom.dataset import FileDataset
 from .utils import read_json
-from .constants import DEFAULT_TEMPLATE_PATH
 from mtf import get_labelled_rois, calculate_mtf, preprocess_dcm
 
 
