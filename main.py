@@ -7,6 +7,7 @@ from pathlib import Path
 
 TEMPLATE_PATH = Path(__file__).parent / "template_parameters.json"
 
+
 def main() -> None:
     excel_handler = XwingsHandler(TEMPLATE_PATH)
     calculator = MammoTemplateCalc(TEMPLATE_PATH)
