@@ -3,7 +3,6 @@ from pathlib import Path
 import re
 import xlwings as xw
 import numpy as np
-from pywintypes import com_error
 from .errors import (
     ExcelNotFoundError,
     ValueOverwriteError,
@@ -65,7 +64,7 @@ class XwingsHandler(ExcelHandler):
                 if book.name != self.selected_book
             ]
             return book_names
-        except (xw.XlwingsError, com_error, OSError):
+        except (xw.XlwingsError, OSError):
             raise ExcelNotFoundError
 
     def set_active_cell(self) -> None:
@@ -116,7 +115,7 @@ class XwingsHandler(ExcelHandler):
         sheet_name = self.params_dict["sheet_name"]
         try:
             xwsheet = xw.books[book_name].sheets[sheet_name]
-        except com_error:
+        except Exception:
             raise TemplateWriteError
         cell_key = self.params_dict["modes"][mode]
         edge_locations_write = self.params_dict[manufacturer]["edge_locations"].split(
