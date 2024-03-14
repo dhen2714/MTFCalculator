@@ -80,8 +80,8 @@ class MammoTemplateCalc(MTFCalculator):
                 edge_roi_canny,
                 edge_dir=edge_dir,
             )
-            f, mtf = mtf_container.f, mtf_container.mtf
-            results_array[:, ColumnIndex[edge_position].value] = mtf[
+            f, mtf_vals = mtf_container.f, mtf_container.mtf
+            results_array[:, ColumnIndex[edge_position].value] = mtf_vals[
                 : self.sample_number
             ]
             results_array[:, 0] = f[: self.sample_number]
