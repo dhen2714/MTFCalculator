@@ -10,8 +10,7 @@ from mtf import get_labelled_rois, calculate_mtf, preprocess_dcm
 
 class MTFCalculator(ABC):
     @abstractmethod
-    def calculate_mtf(self, dicom_path: str | Path) -> tuple[np.ndarray, dict]:
-        ...
+    def calculate_mtf(self, dicom_path: str | Path) -> tuple[np.ndarray, dict]: ...
 
 
 class EdgeDirection(Enum):
@@ -75,13 +74,15 @@ class MammoTemplateCalc(MTFCalculator):
             edge_dir = EdgeDirection[edge_position].value
             edge_roi = rois[edge_position]
             edge_roi_canny = rois_edge[edge_position]
-            f, mtf = calculate_mtf(
+            mtf_container = calculate_mtf(
                 edge_roi,
                 sample_spacing,
                 edge_roi_canny,
                 edge_dir=edge_dir,
-                sample_number=self.sample_number,
             )
-            results_array[:, ColumnIndex[edge_position].value] = mtf
-            results_array[:, 0] = f
+            f, mtf_vals = mtf_container.f, mtf_container.mtf
+            results_array[:, ColumnIndex[edge_position].value] = mtf_vals[
+                : self.sample_number
+            ]
+            results_array[:, 0] = f[: self.sample_number]
         return results_array, metadata
