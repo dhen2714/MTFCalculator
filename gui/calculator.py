@@ -40,6 +40,10 @@ def get_hologic_mode(dcm: FileDataset) -> str:
     return mode
 
 
+def get_fuji_mode(dcm: FileDataset) -> str:
+    pass
+
+
 class MammoTemplateCalc(MTFCalculator):
     """Calculator compatible with the mammo template"""
 
@@ -55,18 +59,19 @@ class MammoTemplateCalc(MTFCalculator):
         """
         metadata = {}
         dcm = pydicom.dcmread(dicom_path)
-        image_array = preprocess_dcm(dcm)
-        manufacturer_name = dcm[0x0008, 0x0070].value.lower()
+        preprocessed_img = preprocess_dcm(dcm)
+        # manufacturer_name = dcm[0x0008, 0x0070].value.lower()
+        manufacturer_name = preprocessed_img.manufacturer
         if "hologic" in manufacturer_name:
-            mode = get_hologic_mode(dcm)
+            mode = preprocessed_img.acquisition
             sample_spacing = self.params_dict["hologic"]["spacing"][mode]
             metadata["manufacturer"] = "hologic"
         elif "ge" in manufacturer_name:
-            mode = "contact"
+            mode = preprocessed_img.acquisition
             sample_spacing = self.params_dict["ge"]["spacing"][mode]
             metadata["manufacturer"] = "ge"
         metadata["mode"] = mode
-        rois, rois_edge = get_labelled_rois(image_array)
+        rois, rois_edge = get_labelled_rois(preprocessed_img.array)
         results_array = np.empty((self.sample_number, 5))
         results_array[:] = np.nan
 

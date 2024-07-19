@@ -3,6 +3,9 @@ from typing import Protocol
 from dataclasses import dataclass, field
 from pathlib import Path
 import numpy as np
+from PIL import Image
+import pydicom
+from mtf import preprocess_dcm
 from .sql_queries import CREATE_TABLE, INSERT_ROWS, DELETE_ALL, UPDATE_MTF_VALUES
 from .errors import ExcelWriteError
 
@@ -40,21 +43,18 @@ class MTFEdge:
 
 
 class MTFCalculator(Protocol):
-    def calculate_mtf(self, dicom_path) -> tuple[np.ndarray, dict]:
-        ...
+    def calculate_mtf(self, dicom_path) -> tuple[np.ndarray, dict]: ...
 
 
 class ExcelHandler(Protocol):
     selected_book: str
 
     @property
-    def book_names(self) -> list[str]:
-        ...
+    def book_names(self) -> list[str]: ...
 
     def write_data(
         self, file_name: str, manufacturer: str, mode: str, mtf_data: np.ndarray
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 def mtfcol2str(data_column: np.array) -> str:
@@ -75,6 +75,8 @@ class Model:
         self.cursor.execute(CREATE_TABLE)
         self.excel = excel_handler
         self.mtf_calc = mtf_calculator
+        self.display_images = dict()
+        self.display_image_size = (200, 200)
 
     def add_edge_files(self, file_list: list[str]) -> None:
         new_data_rows = [MTFEdge(fpath=fpath).astuple() for fpath in file_list]
@@ -89,10 +91,12 @@ class Model:
         return edge_names
 
     def delete_all(self) -> None:
+        self.display_images = dict()
         self.cursor.execute(DELETE_ALL)
         self.connection.commit()
 
     def delete_edge(self, name: str) -> None:
+        self.display_images.pop(name)
         self.cursor.execute("delete from edges where name = ?", (name,))
         self.connection.commit()
 
@@ -181,3 +185,24 @@ class Model:
                 self.excel.write_data(row.name, row.manufacturer, row.mode, mtf_data)
             except ExcelWriteError as e:
                 print(e)
+
+    def dicom_to_display_image(self, dcm_name: str) -> Image:
+        if dcm_name == "":
+            pixel_array = 256 * np.ones(self.display_image_size)
+            im = Image.fromarray(pixel_array.astype(np.uint8))
+        else:
+            dcm_path = self.cursor.execute(
+                "select fpath from edges where name = ?", (dcm_name,)
+            ).fetchall()[0][0]
+            dcm_name = Path(dcm_path).name
+            if dcm_name in self.display_images.keys():
+                im = self.display_images[dcm_name]
+            else:
+                dcm = pydicom.dcmread(dcm_path)
+                pixel_array = preprocess_dcm(dcm).array
+                print(pixel_array)
+                im = Image.fromarray(pixel_array.astype(np.uint8))
+                im.thumbnail(self.display_image_size)
+                self.display_images[dcm_name] = im
+
+        return im
