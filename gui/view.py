@@ -2,50 +2,40 @@ from typing import Optional, Protocol, Tuple, Union
 import tkinter as tk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import customtkinter as ctk
+from PIL import Image
 
 
 TITLE = "DR MAM"
 
 
 class Presenter(Protocol):
-    def handle_files_dropped(self, event=None) -> None:
-        ...
+    def handle_files_dropped(self, event=None) -> None: ...
 
-    def handle_delete(self, event=None) -> None:
-        ...
+    def handle_delete(self, event=None) -> None: ...
 
-    def handle_clear(self, event=None) -> None:
-        ...
+    def handle_clear(self, event=None) -> None: ...
 
-    def init_workbook_list(self) -> None:
-        ...
+    def init_workbook_list(self) -> None: ...
 
-    def update_workbook_list(self) -> None:
-        ...
+    def update_workbook_list(self) -> None: ...
 
-    def handle_workbook_selected(self, *args) -> None:
-        ...
+    def handle_workbook_selected(self, *args) -> None: ...
 
-    def handle_calculate(self) -> None:
-        ...
+    def handle_calculate(self) -> None: ...
 
-    def handle_write(self) -> None:
-        ...
+    def handle_write(self) -> None: ...
 
-    def handle_calculate_write(self) -> None:
-        ...
+    def handle_calculate_write(self) -> None: ...
 
-    def handle_write_mode(self) -> None:
-        ...
+    def handle_write_mode(self) -> None: ...
 
-    def handle_template_select(self) -> None:
-        ...
+    def handle_template_select(self) -> None: ...
 
-    def handle_active_select(self) -> None:
-        ...
+    def handle_active_select(self) -> None: ...
 
-    def handle_active_cell_refresh(self) -> None:
-        ...
+    def handle_active_cell_refresh(self) -> None: ...
+
+    def handle_image_select(self) -> None: ...
 
 
 class cTkdnd(ctk.CTk, TkinterDnD.DnDWrapper):
@@ -62,7 +52,7 @@ class MTFCalculator(cTkdnd):
     def __init__(self) -> None:
         super().__init__()
         self.title(TITLE)
-        self.geometry("600x450")
+        self.geometry("900x450")
 
     def init_ui(self, presenter: Presenter) -> None:
         self.frame = ctk.CTkFrame(self, width=300, height=450, fg_color="transparent")
@@ -72,7 +62,7 @@ class MTFCalculator(cTkdnd):
 
         ctk.CTkLabel(self.frame, text="DICOM images to process:").pack()
         self.image_list = tk.Listbox(self.frame, height=10, width=30)
-        self.image_list.bind("<<ListboxSelect>>", self.on_select_task)
+        self.image_list.bind("<<ListboxSelect>>", presenter.handle_image_select)
         self.image_list.bind("<FocusOut>", self.on_focus_out)
         self.image_list.pack()
 
@@ -108,6 +98,19 @@ class MTFCalculator(cTkdnd):
         self.workbook_option_label.pack(side=tk.TOP)
         self.workbook_option_menu.pack(side=tk.BOTTOM)
         self.workbook_frame.pack()
+
+        self.image_display_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.image = ctk.CTkImage(
+            light_image=Image.new("RGB", (100, 100), color="white"),
+            dark_image=Image.new("RGB", (100, 100), color="black"),
+            size=(200, 200),
+        )
+        self.image_display = ctk.CTkLabel(
+            self.image_display_frame, text="", image=self.image
+        )
+        self.image_display.pack(padx=50)
+        self.image_display_frame.grid(row=0, column=2, rowspan=2)
+
         # Frame that contains the 'template' and 'active' radiobuttons for Excel write.
         self.write_mode_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.write_mode = ctk.StringVar(self, value="template")
@@ -143,7 +146,7 @@ class MTFCalculator(cTkdnd):
         self.active_cell_write.pack()
         self.active_cell_refresh.pack(side=tk.LEFT)
         self.active_cell_value_text.pack(side=tk.RIGHT)
-        self.write_mode_frame.grid(row=0, column=0)
+        self.write_mode_frame.grid(row=0, column=0, pady=5)
         # Frame for calculate and write buttons
         self.calc_button_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.calc_button_row1 = ctk.CTkFrame(self.calc_button_frame)
@@ -189,7 +192,7 @@ class MTFCalculator(cTkdnd):
     def set_active_cell_text(self, value: str) -> None:
         self.active_cell.set(value)
 
-    def on_select_task(self, event=None) -> None:
+    def on_select_image(self, event=None) -> None:
         self.button_delete_selected.configure(state=tk.NORMAL)
 
     def on_focus_out(self, event=None) -> None:
@@ -214,21 +217,12 @@ class MTFCalculator(cTkdnd):
         self.workbook_options = options
 
     def update_workbook_list(self, options: list[str]) -> None:
-        # self.workbook_option_menu["menu"].delete(0, "end")
         vals = []
         self.workbook_option_menu.configure(values=vals)
         for book in options:
             vals.append(book)
             self.workbook_option_menu.configure(values=vals)
-            # self.workbook_option_menu["menu"].add_command(
-            #     label=book,
-            #     command=lambda value=book: self.workbook_selection.set(value),
-            # )
 
-    def popup_version(self) -> None:
-        win = tk.Toplevel()
-        win.wm_title("New software version")
-        text_label = tk.Label(win, text="New software version detected!")
-        text_label.pack()
-        button = tk.Button(win, text="Wow cool!", command=win.destroy)
-        button.pack()
+    def update_image_display(self, im: Image) -> None:
+        image_new = ctk.CTkImage(light_image=im, dark_image=im, size=(200, 200))
+        self.image_display.configure(image=image_new)
