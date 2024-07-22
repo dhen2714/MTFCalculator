@@ -1,4 +1,4 @@
-from typing import Optional, Protocol, Tuple, Union
+from typing import Protocol, Tuple
 import tkinter as tk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 import customtkinter as ctk
