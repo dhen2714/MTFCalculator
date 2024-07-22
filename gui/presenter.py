@@ -140,6 +140,13 @@ class Presenter:
     def handle_image_select(self, event=None) -> None:
         selected_image = self.view.selected_image
         im = self.model.dicom_to_display_image(selected_image)
-        selected_image_details = self.model.display_image_details[selected_image]
+        try:
+            selected_image_details = self.model.display_image_details[selected_image]
+        except KeyError:  # For when images have been deleted from image list.
+            selected_image_details = {
+                "acquisition": "",
+                "manufacturer": "",
+                "focus_plane": "",
+            }
         self.view.on_select_image()
         self.view.update_image_display(im, selected_image_details)
