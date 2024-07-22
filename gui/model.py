@@ -96,7 +96,8 @@ class Model:
         self.connection.commit()
 
     def delete_edge(self, name: str) -> None:
-        self.display_images.pop(name)
+        if name in self.display_images.keys():
+            self.display_images.pop(name)
         self.cursor.execute("delete from edges where name = ?", (name,))
         self.connection.commit()
 
