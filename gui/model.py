@@ -201,7 +201,6 @@ class Model:
             else:
                 dcm = pydicom.dcmread(dcm_path)
                 pixel_array = preprocess_dcm(dcm).array
-                print(pixel_array)
                 im = Image.fromarray(pixel_array.astype(np.uint8))
                 im.thumbnail(self.display_image_size)
                 self.display_images[dcm_name] = im
