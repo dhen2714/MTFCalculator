@@ -76,6 +76,7 @@ class Model:
         self.excel = excel_handler
         self.mtf_calc = mtf_calculator
         self.display_images = dict()
+        self.display_image_details = dict()
         self.display_image_size = (200, 200)
 
     def add_edge_files(self, file_list: list[str]) -> None:
@@ -92,12 +93,14 @@ class Model:
 
     def delete_all(self) -> None:
         self.display_images = dict()
+        self.display_image_details = dict()
         self.cursor.execute(DELETE_ALL)
         self.connection.commit()
 
     def delete_edge(self, name: str) -> None:
         if name in self.display_images.keys():
             self.display_images.pop(name)
+            self.display_image_details.pop(name)
         self.cursor.execute("delete from edges where name = ?", (name,))
         self.connection.commit()
 
@@ -200,9 +203,15 @@ class Model:
                 im = self.display_images[dcm_name]
             else:
                 dcm = pydicom.dcmread(dcm_path)
-                pixel_array = preprocess_dcm(dcm).array
+                mammo_image_preprocessed = preprocess_dcm(dcm)
+                pixel_array = mammo_image_preprocessed.array
                 im = Image.fromarray(pixel_array.astype(np.uint8))
                 im.thumbnail(self.display_image_size)
                 self.display_images[dcm_name] = im
+                self.display_image_details[dcm_name] = {
+                    "acquisition": mammo_image_preprocessed.acquisition,
+                    "manufacturer": mammo_image_preprocessed.manufacturer,
+                    "focus_plane": mammo_image_preprocessed.focus_plane,
+                }
 
         return im
