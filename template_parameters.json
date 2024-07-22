@@ -1,15 +1,15 @@
 {
     "sheet_name": "Resolution",
     "modes": {
-        "contact": "AF8",
+        "conventional": "AF8",
         "mag": "AJ8",
-        "tomo_recon_top": "AV8"
+        "tomo": "AV8"
     },
     "hologic": {
         "spacing": {
             "conventional": 0.0635,
             "mag": 0.0349,
-            "tomo_recon_top": 0.108
+            "tomo": 0.108
         },
         "edge_locations": "right, top"
     },
@@ -22,7 +22,7 @@
     "hologic_spacing": {
         "conventional": 0.0635,
         "mag": 0.0349,
-        "tomo_recon_top": 0.108
+        "tomo": 0.108
     },
     "ge_spacing": {
         "conventional": 0.0909
