@@ -1,7 +1,7 @@
 [project]
 
 name = "drmam"
-version = "1.0.1"
+version = "1.0.2"
 description = "Digital Radiography Modulation transfer function Analysis Module"
 requires-python = ">=3.10, <3.12"
 authors = [{ name = "David Henry", email = "david.henry3@health.nsw.gov.au" }]
