@@ -14,7 +14,7 @@ class View(Protocol):
 
     def update_workbook_list(self, options: list[str]) -> None: ...
 
-    def update_image_display(self, im) -> None: ...
+    def update_image_display(self, im, im_details) -> None: ...
 
     @property
     def selected_image(self) -> str: ...
@@ -140,5 +140,6 @@ class Presenter:
     def handle_image_select(self, event=None) -> None:
         selected_image = self.view.selected_image
         im = self.model.dicom_to_display_image(selected_image)
+        selected_image_details = self.model.display_image_details[selected_image]
         self.view.on_select_image()
-        self.view.update_image_display(im)
+        self.view.update_image_display(im, selected_image_details)

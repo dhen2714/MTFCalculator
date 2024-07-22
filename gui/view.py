@@ -55,18 +55,21 @@ class MTFCalculator(cTkdnd):
         self.geometry("900x450")
 
     def init_ui(self, presenter: Presenter) -> None:
-        self.frame = ctk.CTkFrame(self, width=300, height=450, fg_color="transparent")
+        self.frame = ctk.CTkFrame(self, fg_color="transparent")
         self.frame.grid(row=0, column=1, rowspan=2)
         self.frame.drop_target_register(DND_FILES)
         self.frame.dnd_bind("<<Drop>>", presenter.handle_files_dropped)
 
-        ctk.CTkLabel(self.frame, text="DICOM images to process:").pack()
-        self.image_list = tk.Listbox(self.frame, height=10, width=30)
+        self.image_list_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
+        self.listbox_header = ctk.CTkLabel(
+            self.image_list_frame, text="DICOM images to process:"
+        ).pack()
+        self.image_list = tk.Listbox(self.image_list_frame, height=10, width=30)
         self.image_list.bind("<<ListboxSelect>>", presenter.handle_image_select)
         self.image_list.bind("<FocusOut>", self.on_focus_out)
         self.image_list.pack()
 
-        self.image_list_buttons = ctk.CTkFrame(self.frame)
+        self.image_list_buttons = ctk.CTkFrame(self.image_list_frame)
         self.button_delete_selected = ctk.CTkButton(
             self.image_list_buttons,
             text="Delete selected",
@@ -78,10 +81,9 @@ class MTFCalculator(cTkdnd):
         )
         self.button_clear_all.pack(side=tk.LEFT)
         self.image_list_buttons.pack()
+        self.image_list_frame.pack()
 
-        self.workbook_frame = ctk.CTkFrame(
-            self.frame, width=300, height=450, fg_color="transparent"
-        )
+        self.workbook_frame = ctk.CTkFrame(self.frame, fg_color="transparent")
         self.workbook_option_label = ctk.CTkLabel(
             self.workbook_frame, text="Selected Excel workbook:"
         )
@@ -94,7 +96,6 @@ class MTFCalculator(cTkdnd):
             command=presenter.handle_workbook_selected,
             values=self.workbook_options,
         )
-        # self.workbook_selection.trace("w", presenter.handle_workbook_selected)
         self.workbook_option_label.pack(side=tk.TOP)
         self.workbook_option_menu.pack(side=tk.BOTTOM)
         self.workbook_frame.pack()
@@ -108,8 +109,28 @@ class MTFCalculator(cTkdnd):
         self.image_display = ctk.CTkLabel(
             self.image_display_frame, text="", image=self.image
         )
-        self.image_display.pack(padx=50)
-        self.image_display_frame.grid(row=0, column=2, rowspan=2)
+        self.image_display.pack(padx=50, pady=10)
+        self.image_display_details_frame = ctk.CTkFrame(
+            self.image_display_frame, fg_color="transparent"
+        )
+        self.image_display_details_name = ctk.CTkLabel(
+            self.image_display_details_frame, text=""
+        )
+        self.image_display_details_name.pack(side=tk.TOP)
+        self.image_display_details_acquisition = ctk.CTkLabel(
+            self.image_display_details_frame, text=""
+        )
+        self.image_display_details_acquisition.pack(side=tk.TOP)
+        self.image_display_details_manufacturer = ctk.CTkLabel(
+            self.image_display_details_frame, text=""
+        )
+        self.image_display_details_manufacturer.pack(side=tk.TOP)
+        self.image_display_details_tomo_slice = ctk.CTkLabel(
+            self.image_display_details_frame, text=""
+        )
+        self.image_display_details_tomo_slice.pack(side=tk.BOTTOM)
+        self.image_display_details_frame.pack(fill="both", expand=True)
+        self.image_display_frame.grid(row=0, column=2, rowspan=4)
 
         # Frame that contains the 'template' and 'active' radiobuttons for Excel write.
         self.write_mode_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -223,6 +244,16 @@ class MTFCalculator(cTkdnd):
             vals.append(book)
             self.workbook_option_menu.configure(values=vals)
 
-    def update_image_display(self, im: Image) -> None:
+    def update_image_display(self, im: Image, image_details: dict) -> None:
         image_new = ctk.CTkImage(light_image=im, dark_image=im, size=(200, 200))
         self.image_display.configure(image=image_new)
+        self.image_display_details_name.configure(text=self.selected_image)
+        self.image_display_details_acquisition.configure(
+            text=f"Acquisition type: {image_details['acquisition'].capitalize()}"
+        )
+        self.image_display_details_manufacturer.configure(
+            text=f"Manufacturer: {image_details['manufacturer'].upper()}"
+        )
+        self.image_display_details_tomo_slice.configure(
+            text=f"Focus plane (for Tomo): {image_details['focus_plane']}"
+        )
