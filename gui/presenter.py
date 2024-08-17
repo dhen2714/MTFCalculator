@@ -42,7 +42,7 @@ def split_event_string(event_string: str) -> list[str]:
     to a list of file paths.
     """
     # Paths with spaces are bounded by { }
-    bounded = re.compile("\{[^}^{]*\}")
+    bounded = re.compile(r"\{[^}^{]*\}")
     paths_bounded = re.findall(bounded, event_string)
     paths_bounded = [path.strip("{}") for path in paths_bounded]
     # Paths without spaces are in the event string as is
