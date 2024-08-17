@@ -83,7 +83,7 @@ class XwingsHandler(ExcelHandler):
         self.active_cell = xwbook.app.selection.address.replace("$", "")
         self.active_cell_gen = self.write_cell_generator(self.active_cell)
 
-    def write_cell_generator(self, active_cell: str) -> tuple[int, int]:
+    def write_cell_generator(self, active_cell: str):
         row_write, col_write = excelkey2ind(active_cell)
         increment = 5
         while True:
