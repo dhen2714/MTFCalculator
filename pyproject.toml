@@ -1,9 +1,9 @@
 [project]
 
 name = "drmam"
-version = "1.0.2"
+version = "1.0.3"
 description = "Digital Radiography Modulation transfer function Analysis Module"
-requires-python = ">=3.10, <3.12"
+requires-python = ">=3.10, <=3.12"
 authors = [{ name = "David Henry", email = "david.henry3@health.nsw.gov.au" }]
 
 classifiers = [
@@ -21,6 +21,7 @@ dependencies = [
     "scikit-learn",
     "scipy",
     "packaging",
+    "pillow",
     "pylibjpeg",
     "pylibjpeg-libjpeg",
 ]
