@@ -70,6 +70,10 @@ class MammoTemplateCalc(MTFCalculator):
             mode = preprocessed_img.acquisition
             sample_spacing = self.params_dict["ge"]["spacing"][mode]
             metadata["manufacturer"] = "ge"
+        elif "fuji" in manufacturer_name:
+            mode = preprocessed_img.acquisition
+            sample_spacing = self.params_dict["fuji"]["spacing"][mode]
+            metadata["manufacturer"] = "fuji"
         metadata["mode"] = mode
         rois, rois_edge = get_labelled_rois(preprocessed_img.array)
         results_array = np.empty((self.sample_number, 5))

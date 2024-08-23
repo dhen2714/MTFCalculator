@@ -19,6 +19,14 @@
         },
         "edge_locations": "left, bottom"
     },
+    "fuji": {
+        "spacing": {
+            "conventional": 0.0468,
+            "mag": 0.0246,
+            "tomo": 0.1
+        },
+        "edge_locations": "left, bottom"
+    },
     "hologic_spacing": {
         "conventional": 0.0635,
         "mag": 0.0349,
