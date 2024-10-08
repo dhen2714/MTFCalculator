@@ -6,35 +6,25 @@
         "tomo": "AV8"
     },
     "hologic": {
-        "spacing": {
-            "conventional": 0.0635,
-            "mag": 0.0349,
-            "tomo": 0.108
+        "magnification_factor": {
+            "conventional": 1.1023,
+            "mag": 2.0057,
+            "tomo": 1
         },
         "edge_locations": "right, top"
     },
     "ge": {
-        "spacing": {
-            "conventional": 0.0909
+        "magnification_factor": {
+            "conventional": 1.1001
         },
         "edge_locations": "left, bottom"
     },
     "fuji": {
-        "spacing": {
-            "conventional": 0.0468,
-            "mag": 0.0246,
-            "tomo": 0.1
+        "magnification_factor": {
+            "conventional": 1.0684,
+            "mag": 2.0325,
+            "tomo": 1
         },
         "edge_locations": "left, bottom"
-    },
-    "hologic_spacing": {
-        "conventional": 0.0635,
-        "mag": 0.0349,
-        "tomo": 0.108
-    },
-    "ge_spacing": {
-        "conventional": 0.0909
-    },
-    "edge_locations": "right, top",
-    "substitute_edge_locations": true
+    }
 }
