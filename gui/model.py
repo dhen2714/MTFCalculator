@@ -211,6 +211,7 @@ class Model:
                 self.display_image_details[dcm_name] = {
                     "acquisition": mammo_image_preprocessed.acquisition,
                     "manufacturer": mammo_image_preprocessed.manufacturer,
+                    "pixel_spacing": mammo_image_preprocessed.pixel_spacing,
                     "focus_plane": mammo_image_preprocessed.focus_plane,
                 }
 

@@ -146,6 +146,7 @@ class Presenter:
             selected_image_details = {
                 "acquisition": "",
                 "manufacturer": "",
+                "pixel_spacing": "",
                 "focus_plane": "",
             }
         self.view.on_select_image()

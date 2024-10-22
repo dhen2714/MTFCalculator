@@ -125,6 +125,10 @@ class MTFCalculator(cTkdnd):
             self.image_display_details_frame, text=""
         )
         self.image_display_details_manufacturer.pack(side=tk.TOP)
+        self.image_display_details_pixel_spacing = ctk.CTkLabel(
+            self.image_display_details_frame, text=""
+        )
+        self.image_display_details_pixel_spacing.pack(side=tk.TOP)
         self.image_display_details_tomo_slice = ctk.CTkLabel(
             self.image_display_details_frame, text=""
         )
@@ -253,6 +257,9 @@ class MTFCalculator(cTkdnd):
         )
         self.image_display_details_manufacturer.configure(
             text=f"Manufacturer: {image_details['manufacturer'].upper()}"
+        )
+        self.image_display_details_pixel_spacing.configure(
+            text=f"Pixel spacing (mm): {image_details['pixel_spacing']}"
         )
         self.image_display_details_tomo_slice.configure(
             text=f"Focus plane (for Tomo): {image_details['focus_plane']}"
