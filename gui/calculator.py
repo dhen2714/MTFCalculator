@@ -90,15 +90,20 @@ class MammoTemplateCalc(MTFCalculator):
             edge_dir = EdgeDirection[edge_position].value
             edge_roi = rois[edge_position]
             edge_roi_canny = rois_edge[edge_position]
-            mtf_container = calculate_mtf(
-                edge_roi,
-                sample_spacing,
-                edge_roi_canny,
-                edge_dir=edge_dir,
-            )
-            f, mtf_vals = mtf_container.f, mtf_container.mtf
-            results_array[:, ColumnIndex[edge_position].value] = mtf_vals[
-                : self.sample_number
-            ]
-            results_array[:, 0] = f[: self.sample_number]
+            try:
+                mtf_container = calculate_mtf(
+                    edge_roi,
+                    sample_spacing,
+                    edge_roi_canny,
+                    edge_dir=edge_dir,
+                )
+                f, mtf_vals = mtf_container.f, mtf_container.mtf
+                results_array[:, ColumnIndex[edge_position].value] = mtf_vals[
+                    : self.sample_number
+                ]
+                results_array[:, 0] = f[: self.sample_number]
+            except Exception as e:
+                print(
+                    f"Exception found when processing {edge_position} edge of {dicom_path}:\n{e}"
+                )
         return results_array, metadata
