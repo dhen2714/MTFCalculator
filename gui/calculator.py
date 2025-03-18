@@ -63,11 +63,17 @@ class MammoTemplateCalc(MTFCalculator):
         # manufacturer_name = dcm[0x0008, 0x0070].value.lower()
         manufacturer_name = preprocessed_img.manufacturer
         pixel_spacing = preprocessed_img.pixel_spacing
+        orientation = preprocessed_img.orientation
         if "hologic" in manufacturer_name:
             mode = preprocessed_img.acquisition
             mag_factor = self.params_dict["hologic"]["magnification_factor"][mode]
             sample_spacing = pixel_spacing / mag_factor
             metadata["manufacturer"] = "hologic"
+        elif "siemens" in manufacturer_name:
+            mode = preprocessed_img.acquisition
+            mag_factor = self.params_dict["siemens"]["magnification_factor"][mode]
+            sample_spacing = pixel_spacing / mag_factor
+            metadata["manufacturer"] = "siemens"
         elif "ge" in manufacturer_name:
             mode = preprocessed_img.acquisition
             mag_factor = self.params_dict["ge"]["magnification_factor"][mode]
@@ -78,10 +84,13 @@ class MammoTemplateCalc(MTFCalculator):
             mag_factor = self.params_dict["fuji"]["magnification_factor"][mode]
             sample_spacing = pixel_spacing / mag_factor
             metadata["manufacturer"] = "fuji"
+        else:
+            raise ValueError(f"Unsupported manufacturer {manufacturer_name}")
         metadata["mode"] = mode
         metadata["sample_spacing"] = sample_spacing
         metadata["pixel_spacing"] = pixel_spacing
         metadata["magnification_factor"] = mag_factor
+        metadata["orientation"] = orientation
         rois, rois_edge = get_labelled_rois(preprocessed_img.array)
         results_array = np.empty((self.sample_number, 5))
         results_array[:] = np.nan

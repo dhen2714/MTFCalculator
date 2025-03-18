@@ -16,6 +16,7 @@ class MTFEdge:
     _name: str = field(default=None, compare=False)
     manufacturer: str = None
     mode: str = None
+    orientation: str = None
     frequency: str = None
     left: str = None
     right: str = None
@@ -33,6 +34,7 @@ class MTFEdge:
             self.name,
             self.manufacturer,
             self.mode,
+            self.orientation,
             self.frequency,
             self.left,
             self.right,
@@ -53,7 +55,12 @@ class ExcelHandler(Protocol):
     def book_names(self) -> list[str]: ...
 
     def write_data(
-        self, file_name: str, manufacturer: str, mode: str, mtf_data: np.ndarray
+        self,
+        file_name: str,
+        manufacturer: str,
+        mode: str,
+        orientation: str,
+        mtf_data: np.ndarray,
     ) -> None: ...
 
 
@@ -124,6 +131,7 @@ class Model:
         fpath: str,
         manufacturer: str,
         mode: str,
+        orientation: str,
         frequency: str,
         left: str,
         right: str,
@@ -132,7 +140,17 @@ class Model:
     ) -> None:
         self.cursor.execute(
             UPDATE_MTF_VALUES,
-            (manufacturer, mode, frequency, left, right, top, bottom, fpath),
+            (
+                manufacturer,
+                mode,
+                orientation,
+                frequency,
+                left,
+                right,
+                top,
+                bottom,
+                fpath,
+            ),
         )
         self.connection.commit()
 
@@ -154,8 +172,17 @@ class Model:
             frequency, left, right, top, bottom, metadata = self.calculate_mtf(dcm_path)
             mode = metadata["mode"]
             manufacturer = metadata["manufacturer"]
+            orientation = metadata["orientation"]
             self.update_mtf_values(
-                dcm_path, manufacturer, mode, frequency, left, right, top, bottom
+                dcm_path,
+                manufacturer,
+                mode,
+                orientation,
+                frequency,
+                left,
+                right,
+                top,
+                bottom,
             )
         pass
 
@@ -186,7 +213,9 @@ class Model:
                 [row.frequency, row.left, row.right, row.top, row.bottom]
             ).T
             try:
-                self.excel.write_data(row.name, row.manufacturer, row.mode, mtf_data)
+                self.excel.write_data(
+                    row.name, row.manufacturer, row.mode, row.orientation, mtf_data
+                )
             except ExcelWriteError as e:
                 print(e)
 

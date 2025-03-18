@@ -13,6 +13,12 @@
         },
         "edge_locations": "right, top"
     },
+    "siemens": {
+        "magnification_factor": {
+            "conventional": 1.1054,
+            "mag": 1.6511
+        }
+    },
     "ge": {
         "magnification_factor": {
             "conventional": 1.1001

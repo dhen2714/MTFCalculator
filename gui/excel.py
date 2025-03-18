@@ -108,9 +108,13 @@ class XwingsHandler(ExcelHandler):
             )
 
     def write_template(
-        self, manufacturer: str, mode: str, mtf_data: np.ndarray
+        self, manufacturer: str, mode: str, orientation: str, mtf_data: np.ndarray
     ) -> None:
         """Substitution not implemented."""
+        orientation2edgeloc = {
+            "left": ["right", "top"],
+            "right": ["left", "bottom"],
+        }
         book_name = self.selected_book
         sheet_name = self.params_dict["sheet_name"]
         try:
@@ -118,9 +122,7 @@ class XwingsHandler(ExcelHandler):
         except Exception as e:
             raise TemplateWriteError(e)
         cell_key = self.params_dict["modes"][mode]
-        edge_locations_write = self.params_dict[manufacturer]["edge_locations"].split(
-            ", "
-        )
+        edge_locations_write = orientation2edgeloc[orientation]
         edge_indices = [
             ColumnIndex[edge_loc].value for edge_loc in edge_locations_write
         ]
@@ -133,11 +135,16 @@ class XwingsHandler(ExcelHandler):
         write_values(xwsheet, formatted_data, cell_key)
 
     def write_data(
-        self, file_name: str, manufacturer: str, mode: str, mtf_data: np.ndarray
+        self,
+        file_name: str,
+        manufacturer: str,
+        mode: str,
+        orientation: str,
+        mtf_data: np.ndarray,
     ) -> None:
         try:
             if self.write_mode == "template":
-                self.write_template(manufacturer, mode, mtf_data)
+                self.write_template(manufacturer, mode, orientation, mtf_data)
             else:
                 self.write_active(file_name, mode, mtf_data)
         except xw.XlwingsError as e:
