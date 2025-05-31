@@ -1,10 +1,10 @@
 [project]
 
-authors = [{ name = "David Henry", email = "david.henry3@health.nsw.gov.au" }]
+authors = [{name = "David Henry", email = "david.henry3@health.nsw.gov.au"}]
 description = "Digital Radiography Modulation transfer function Analysis Module"
 name = "drmam"
 requires-python = ">=3.10, <=3.12"
-version = "1.0.10"
+version = "1.0.11"
 
 classifiers = [
   "Programming Language :: Python :: 3",
