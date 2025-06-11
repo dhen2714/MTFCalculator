@@ -6,6 +6,7 @@ import pydicom
 from pydicom.dataset import FileDataset
 from .utils import read_json
 from mtf import get_labelled_rois, calculate_mtf, preprocess_dcm
+from mtf.dcmutils import MammoMTFImage
 
 
 class MTFCalculator(ABC):
@@ -114,5 +115,67 @@ class MammoTemplateCalc(MTFCalculator):
             except Exception as e:
                 print(
                     f"Exception found when processing {edge_position} edge of {dicom_path}:\n{e}"
+                )
+        return results_array, metadata
+
+    def calculate_mtf_from_preprocessed(self, preprocessed_img: MammoMTFImage) -> tuple[np.ndarray, dict]:
+        """
+        Calculate MTF using a preprocessed image.
+        This avoids re-processing the DICOM file.
+        """
+        metadata = {}
+        manufacturer_name = preprocessed_img.manufacturer
+        pixel_spacing = preprocessed_img.pixel_spacing
+        orientation = preprocessed_img.orientation
+        mode = preprocessed_img.acquisition
+
+        if "hologic" in manufacturer_name:
+            mag_factor = self.params_dict["hologic"]["magnification_factor"][mode]
+            sample_spacing = pixel_spacing / mag_factor
+            metadata["manufacturer"] = "hologic"
+        elif "siemens" in manufacturer_name:
+            mag_factor = self.params_dict["siemens"]["magnification_factor"][mode]
+            sample_spacing = pixel_spacing / mag_factor
+            metadata["manufacturer"] = "siemens"
+        elif "ge" in manufacturer_name:
+            mag_factor = self.params_dict["ge"]["magnification_factor"][mode]
+            sample_spacing = pixel_spacing / mag_factor
+            metadata["manufacturer"] = "ge"
+        elif "fuji" in manufacturer_name:
+            mag_factor = self.params_dict["fuji"]["magnification_factor"][mode]
+            sample_spacing = pixel_spacing / mag_factor
+            metadata["manufacturer"] = "fuji"
+        else:
+            raise ValueError(f"Unsupported manufacturer {manufacturer_name}")
+
+        metadata["mode"] = mode
+        metadata["sample_spacing"] = sample_spacing
+        metadata["pixel_spacing"] = pixel_spacing
+        metadata["magnification_factor"] = mag_factor
+        metadata["orientation"] = orientation
+
+        rois, rois_edge = get_labelled_rois(preprocessed_img.array)
+        results_array = np.empty((self.sample_number, 5))
+        results_array[:] = np.nan
+
+        for edge_position in rois:
+            edge_dir = EdgeDirection[edge_position].value
+            edge_roi = rois[edge_position]
+            edge_roi_canny = rois_edge[edge_position]
+            try:
+                mtf_container = calculate_mtf(
+                    edge_roi,
+                    sample_spacing,
+                    edge_roi_canny,
+                    edge_dir=edge_dir,
+                )
+                f, mtf_vals = mtf_container.f, mtf_container.mtf
+                results_array[:, ColumnIndex[edge_position].value] = mtf_vals[
+                    : self.sample_number
+                ]
+                results_array[:, 0] = f[: self.sample_number]
+            except Exception as e:
+                print(
+                    f"Exception found when processing {edge_position} edge:\n{e}"
                 )
         return results_array, metadata

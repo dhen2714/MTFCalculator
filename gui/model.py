@@ -84,7 +84,8 @@ class Model:
         self.mtf_calc = mtf_calculator
         self.display_images = dict()
         self.display_image_details = dict()
-        self.display_image_size = (200, 200)
+        self.preprocessed_images = {}  # Cache for preprocessed images
+        self.display_image_size = (512, 512)
 
     def add_edge_files(self, file_list: list[str]) -> None:
         new_data_rows = [MTFEdge(fpath=fpath).astuple() for fpath in file_list]
@@ -98,27 +99,79 @@ class Model:
             edge_names.append(file_name)
         return edge_names
 
+    def delete_edge(self, dcm_name: str) -> None:
+        """
+        Delete a single edge from the database.
+        """
+        self.cursor.execute("delete from edges where name = ?", (dcm_name,))
+        self.connection.commit()
+        # Clear cached data for this image
+        if dcm_name in self.display_images:
+            del self.display_images[dcm_name]
+        if dcm_name in self.display_image_details:
+            del self.display_image_details[dcm_name]
+        if dcm_name in self.preprocessed_images:
+            del self.preprocessed_images[dcm_name]
+
     def delete_all(self) -> None:
-        self.display_images = dict()
-        self.display_image_details = dict()
+        """
+        Delete all edges from the database.
+        """
         self.cursor.execute(DELETE_ALL)
         self.connection.commit()
+        # Clear all cached data
+        self.display_images.clear()
+        self.display_image_details.clear()
+        self.preprocessed_images.clear()
 
-    def delete_edge(self, name: str) -> None:
-        if name in self.display_images.keys():
-            self.display_images.pop(name)
-            self.display_image_details.pop(name)
-        self.cursor.execute("delete from edges where name = ?", (name,))
-        self.connection.commit()
+    def dicom_to_display_image(self, dcm_name: str) -> Image:
+        if dcm_name == "":
+            pixel_array = 256 * np.ones(self.display_image_size)
+            im = Image.fromarray(pixel_array.astype(np.uint8))
+        else:
+            dcm_path = self.cursor.execute(
+                "select fpath from edges where name = ?", (dcm_name,)
+            ).fetchall()[0][0]
+            dcm_name = Path(dcm_path).name
+            if dcm_name in self.display_images.keys():
+                im = self.display_images[dcm_name]
+            else:
+                dcm = pydicom.dcmread(dcm_path)
+                mammo_image_preprocessed = preprocess_dcm(dcm)
+                # Cache the preprocessed image
+                self.preprocessed_images[dcm_name] = mammo_image_preprocessed
+                pixel_array = mammo_image_preprocessed.array
+                im = Image.fromarray(pixel_array.astype(np.uint8))
+                im.thumbnail(self.display_image_size)
+                self.display_images[dcm_name] = im
+                self.display_image_details[dcm_name] = {
+                    "acquisition": mammo_image_preprocessed.acquisition,
+                    "manufacturer": mammo_image_preprocessed.manufacturer,
+                    "pixel_spacing": mammo_image_preprocessed.pixel_spacing,
+                    "focus_plane": mammo_image_preprocessed.focus_plane,
+                }
+        return im
 
     def calculate_mtf(self, dicom_path: str | Path) -> tuple[str, dict]:
         """
         Calculate MTF for a single image.
-        Reads dicom image
-        Calculates mtfs for available edges.
+        Uses cached preprocessed image if available, otherwise processes the image.
         Returns results in form of strings
         """
-        results_array, metadata = self.mtf_calc.calculate_mtf(dicom_path)
+        dcm_name = Path(dicom_path).name
+        if dcm_name in self.preprocessed_images:
+            # Use cached preprocessed image
+            preprocessed_img = self.preprocessed_images[dcm_name]
+            results_array, metadata = self.mtf_calc.calculate_mtf_from_preprocessed(
+                preprocessed_img
+            )
+        else:
+            # Process image if not in cache
+            results_array, metadata = self.mtf_calc.calculate_mtf(dicom_path)
+            # Cache the preprocessed image for future use
+            dcm = pydicom.dcmread(dicom_path)
+            self.preprocessed_images[dcm_name] = preprocess_dcm(dcm)
+
         frequency = mtfcol2str(results_array[:, 0])
         left = mtfcol2str(results_array[:, 1])
         right = mtfcol2str(results_array[:, 2])
@@ -218,30 +271,3 @@ class Model:
                 )
             except ExcelWriteError as e:
                 print(e)
-
-    def dicom_to_display_image(self, dcm_name: str) -> Image:
-        if dcm_name == "":
-            pixel_array = 256 * np.ones(self.display_image_size)
-            im = Image.fromarray(pixel_array.astype(np.uint8))
-        else:
-            dcm_path = self.cursor.execute(
-                "select fpath from edges where name = ?", (dcm_name,)
-            ).fetchall()[0][0]
-            dcm_name = Path(dcm_path).name
-            if dcm_name in self.display_images.keys():
-                im = self.display_images[dcm_name]
-            else:
-                dcm = pydicom.dcmread(dcm_path)
-                mammo_image_preprocessed = preprocess_dcm(dcm)
-                pixel_array = mammo_image_preprocessed.array
-                im = Image.fromarray(pixel_array.astype(np.uint8))
-                im.thumbnail(self.display_image_size)
-                self.display_images[dcm_name] = im
-                self.display_image_details[dcm_name] = {
-                    "acquisition": mammo_image_preprocessed.acquisition,
-                    "manufacturer": mammo_image_preprocessed.manufacturer,
-                    "pixel_spacing": mammo_image_preprocessed.pixel_spacing,
-                    "focus_plane": mammo_image_preprocessed.focus_plane,
-                }
-
-        return im
