@@ -21,7 +21,8 @@
     },
     "ge": {
         "magnification_factor": {
-            "conventional": 1.1001
+            "conventional": 1.1001,
+            "mag": 2.0204
         },
         "edge_locations": "left, bottom"
     },
